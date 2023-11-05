@@ -30,10 +30,28 @@ async function run() {
         await client.connect();
 
         const featuresCollection = client.db('foodShop').collection('features')
-        const userCollection = client.db('car-doctor').collection('user')
+        const userCollection = client.db('userfoodshop').collection('user')
+        const foodCollection = client.db('foodShop').collection('food')
+
+        //add food related api
+        app.post('/food', async (req, res) => {
+            const newFood = req.body;
+            console.log(newFood);
+            const result= await foodCollection.insertOne(newFood);
+            res.send(result);
+        })
+
+        app.get('/food', async (req, res) => {
+            const cursor = foodCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        
+
        
 
-        // for features get
+        // for features related api
 
         app.get('/features', async (req, res) => {
             const cursor = featuresCollection.find();
@@ -41,6 +59,7 @@ async function run() {
             res.send(result);
         })
 
+     
         app.get('/features/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
