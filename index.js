@@ -34,18 +34,35 @@ async function run() {
         const foodCollection = client.db('foodShop').collection('food')
 
         //add food related api
-        app.post('/food', async (req, res) => {
+        app.post('/allfood', async (req, res) => {
             const newFood = req.body;
             console.log(newFood);
             const result= await foodCollection.insertOne(newFood);
             res.send(result);
         })
 
-        app.get('/food', async (req, res) => {
+        app.get('/allfood', async (req, res) => {
             const cursor = foodCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
+        app.get('/food/:date', async (req, res) => {
+            const date = req.params.date;
+            const query = { date: date}
+            const cursor = await foodCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+        app.get('/onefood/:id', async (req,res) =>{
+            const id= req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await foodCollection.findOne(query);
+            res.send(result);
+        })
+
+    
+        
 
         
 
