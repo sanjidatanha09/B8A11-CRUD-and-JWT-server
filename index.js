@@ -32,6 +32,9 @@ async function run() {
         const featuresCollection = client.db('foodShop').collection('features')
         const userCollection = client.db('userfoodshop').collection('user')
         const foodCollection = client.db('foodShop').collection('food')
+        const foodrequstCollection = client.db('foodShop').collection('foodrequest')
+
+        //foodrequest related api
 
         //add food related api
         app.post('/allfood', async (req, res) => {
@@ -70,22 +73,22 @@ async function run() {
 
         // for features related api
 
-        app.get('/features', async (req, res) => {
-            const cursor = featuresCollection.find();
-            const result = await cursor.toArray();
-            res.send(result);
-        })
+        // app.get('/features', async (req, res) => {
+        //     const cursor = featuresCollection.find();
+        //     const result = await cursor.toArray();
+        //     res.send(result);
+        // })
 
      
-        app.get('/features/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) }
-            const options = {
-                projection: { food_id: 1, food_name: 1, food_img: 1, donator_name: 1, food_quantity: 1, location: 1, expired_date: 1, additional_notes: 1, donator_img :1},
-            };
-            const result = await featuresCollection.findOne(query,options);
-            res.send(result);
-        });
+        // app.get('/features/:id', async (req, res) => {
+        //     const id = req.params.id;
+        //     const query = { _id: new ObjectId(id) }
+        //     const options = {
+        //         projection: { food_id: 1, food_name: 1, food_img: 1, donator_name: 1, food_quantity: 1, location: 1, expired_date: 1, additional_notes: 1, donator_img :1},
+        //     };
+        //     const result = await featuresCollection.findOne(query,options);
+        //     res.send(result);
+        // });
 
         //user related apis
         app.get('/user' ,async (req,res) =>{
