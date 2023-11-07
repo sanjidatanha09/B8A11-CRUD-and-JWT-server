@@ -29,12 +29,43 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const featuresCollection = client.db('foodShop').collection('features')
+       
         const userCollection = client.db('userfoodshop').collection('user')
         const foodCollection = client.db('foodShop').collection('food')
+
         const foodrequstCollection = client.db('foodShop').collection('foodrequest')
 
         //foodrequest related api
+        app.post('/requestfood', async (req, res) => {
+            const requestFood = req.body;
+            console.log(requestFood);
+            const result = await foodrequstCollection.insertOne(requestFood);
+            res.send(result);
+        })
+
+        app.get('/requestfood', async (req, res) => {
+            const cursor = foodrequstCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+
+
+        app.get('/requestfood/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+
+            const options = {
+                sort: { "imdb.rating": -1 },
+
+                projection: { foodname: 1, foodid: 1, quantity: 1 },
+            };
+            const result = await foodrequstCollection.findOne(query);
+            res.send(result);
+        })
+
+
+     
+
 
         //add food related api
         app.post('/allfood', async (req, res) => {
@@ -49,18 +80,57 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
-        app.get('/food/:date', async (req, res) => {
-            const date = req.params.date;
-            const query = { date: date}
-            const cursor = await foodCollection.find(query);
-            const result = await cursor.toArray();
-            res.send(result);
-        })
+        // app.get('/food/:date', async (req, res) => {
+        //     const date = req.params.date;
+        //     const query = { date: date}
+        //     const cursor = await foodCollection.find(query);
+        //     const result = await cursor.toArray();
+        //     res.send(result);
+        // })
 
         app.get('/onefood/:id', async (req,res) =>{
             const id= req.params.id;
             const query = {_id: new ObjectId(id)}
             const result = await foodCollection.findOne(query);
+            res.send(result);
+        });
+
+
+        app.delete('/allfood/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await foodCollection.deleteOne(query);
+            res.send(result);
+        });
+
+        //status changed confirm
+        app.patch('allfood/:id', async (req,res) =>{
+            const id = req.params.id;
+            const filter = {_id : new ObjectId(id)}
+
+            const updateFood = req.body;
+            console.log(updateFood);
+            const updateDoc = {
+                $set:{
+                    status: updateFood.foodstatus
+                },
+            };
+            const result = await foodCollection.updateOne(filter, updateDoc)
+            res.send(result);
+
+
+        });
+
+        app.get('/somefood', async (req, res) => {
+            console.log(req.query.email);
+            let query ={};
+            if (req. query?.email){
+                query = { email: req.query.email }
+
+            }
+            
+            const result = await foodCollection.find(query).toArray();
+            console.log(result)
             res.send(result);
         });
 
@@ -71,24 +141,7 @@ async function run() {
 
        
 
-        // for features related api
-
-        // app.get('/features', async (req, res) => {
-        //     const cursor = featuresCollection.find();
-        //     const result = await cursor.toArray();
-        //     res.send(result);
-        // })
-
-     
-        // app.get('/features/:id', async (req, res) => {
-        //     const id = req.params.id;
-        //     const query = { _id: new ObjectId(id) }
-        //     const options = {
-        //         projection: { food_id: 1, food_name: 1, food_img: 1, donator_name: 1, food_quantity: 1, location: 1, expired_date: 1, additional_notes: 1, donator_img :1},
-        //     };
-        //     const result = await featuresCollection.findOne(query,options);
-        //     res.send(result);
-        // });
+ 
 
         //user related apis
         app.get('/user' ,async (req,res) =>{
