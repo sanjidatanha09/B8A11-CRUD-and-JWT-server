@@ -49,19 +49,39 @@ async function run() {
             res.send(result);
         })
 
-
-        app.get('/requestfood/:id', async (req, res) => {
+        app.get('/requfood/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) }
-
-            const options = {
-                sort: { "imdb.rating": -1 },
-
-                projection: { foodname: 1, foodid: 1, quantity: 1 },
-            };
             const result = await foodrequstCollection.findOne(query);
             res.send(result);
-        })
+        });
+
+        //status changed confirm
+        app.patch('/requfood/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+
+            const updateFood = req.body;
+            console.log(updateFood);
+            const updateDoc = {
+                $set: {
+                    status: updateFood.status
+                },
+            };
+            const result = await foodrequstCollection.updateOne(filter, updateDoc)
+            res.send(result);
+
+
+        });
+
+        //delete
+        app.delete('/requfood/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await foodrequstCollection.deleteOne(query);
+            res.send(result);
+        });
+
 
 
      
@@ -94,6 +114,31 @@ async function run() {
             const result = await foodCollection.findOne(query);
             res.send(result);
         });
+        //update add food
+        app.put('/onefood/:id', async(req, res) =>{
+            const id = req.params.id;
+            const filter = {_id : new ObjectId(id)}
+            const updatedFood = req.body;
+            const uFood = {
+                $set:{
+                 
+                    foodname: updatedFood.name, 
+                    foodimage: updatedFood.foodimage, 
+                    foodquantity: updatedFood.foodquantity, 
+                    location: updatedFood.location, 
+                    date: updatedFood.date, 
+                    additionalnotes: updatedFood.additionalnotes, 
+                    foodstatus: updatedFood.foodstatus, 
+                    email:updatedFood.email,
+                    donatorimage: updatedFood.donatorimage,
+                    donatorname: updatedFood.donatorname
+                   
+                }
+            }
+
+            const result = await foodCollection.updateOne(filter,uFood)
+            res.send(result);
+        })
 
 
         app.delete('/allfood/:id', async (req, res) => {
@@ -103,23 +148,10 @@ async function run() {
             res.send(result);
         });
 
-        //status changed confirm
-        app.patch('allfood/:id', async (req,res) =>{
-            const id = req.params.id;
-            const filter = {_id : new ObjectId(id)}
 
-            const updateFood = req.body;
-            console.log(updateFood);
-            const updateDoc = {
-                $set:{
-                    status: updateFood.foodstatus
-                },
-            };
-            const result = await foodCollection.updateOne(filter, updateDoc)
-            res.send(result);
+        
 
-
-        });
+     
 
         app.get('/somefood', async (req, res) => {
             console.log(req.query.email);
