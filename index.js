@@ -10,7 +10,13 @@ const port = process.env.PORT || 5000;
 //middleware
 
 app.use(cors({
-    origin: ['http://localhost:5173'],
+    origin: [
+        'https://assignment-11-c9a9e.web.app',
+        'https://assignment-11-c9a9e.firebaseapp.com/',
+        // 'https://assignment-11-c9a9e.firebaseapp.com',
+        
+
+    ],
     credentials: true
 }));
 app.use(express.json());
@@ -96,7 +102,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/requestfood', logger, async (req, res) => {
+        app.get('/requestfood',  async (req, res) => {
             const cursor = foodrequstCollection.find();
             const result = await cursor.toArray();
             res.send(result);
@@ -167,7 +173,7 @@ async function run() {
         })
 
         app.get('/allfood', logger, async (req, res) => {
-            const cursor = foodCollection.find();
+            const cursor = await foodCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         })
@@ -226,7 +232,7 @@ async function run() {
 
 
 
-        app.get('/somefood', logger,verifyToken,  async (req, res) => {
+        app.get('/somefood', logger,verifyToken, async (req, res) => {
             // console.log(req.query.email);
             // console.log('tok tok',req.cookies.token)
             let query = {};
