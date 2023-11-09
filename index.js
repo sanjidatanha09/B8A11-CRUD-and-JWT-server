@@ -12,7 +12,8 @@ const port = process.env.PORT || 5000;
 app.use(cors({
     origin: [
         'https://assignment-11-c9a9e.web.app',
-        'https://assignment-11-c9a9e.firebaseapp.com/',
+        'http://localhost:5173',
+        'https://assignment-11-c9a9e.firebaseapp.com',
         // 'https://assignment-11-c9a9e.firebaseapp.com',
         
 
@@ -45,24 +46,26 @@ const logger = async (req, res, next) => {
 
 //verify token 
 const verifyToken = async (req, res, next) => {
-    const token = req.cookies?.token;
-    console.log('value of token in middleware', token)
+    const token = req?.cookies?.token;
+    // next();
+   
     if (!token) {
-        return res.send({ message: 'not authorized' })
+        return res.status(401).send({ message: 'not authorized' })
         
     }
-    next();
-    // jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,decoded) =>{
-    //     //error
-    //     if (err) {
-    //         console.log(err);
-    //         return res.status(401).send({ message: 'unauthorized' })
-    //     }
-    //     console.log('value in the token', decoded)
+   
+   
 
-    //     req.user = decoded;
-    //     next();
-    // })
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err,decoded) =>{
+        //error
+        if (err) {
+            console.log(err);
+            return res.status(401).send({ message: 'unauthorized' })
+        }
+
+        req.user = decoded;
+        next();
+    })
 
     
 }
@@ -70,7 +73,7 @@ const verifyToken = async (req, res, next) => {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
         const userCollection = client.db('userfoodshop').collection('user')
@@ -81,18 +84,33 @@ async function run() {
         //auth related api
         app.post('/jwt', logger, async (req, res) => {
             const user = req.body;
-            console.log(user);
+            console.log('user for token',user);
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
 
             res
                 .cookie('token', token, {
                     httpOnly: true,
-                    secure: false,
-                    // sameSite: 'none'
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
                 })
                 .send({ success: true })
 
         })
+        //cookies delete
+        app.post('/logout', async(req,res) =>{
+            const user = req.body;
+            console.log("logging out", user);
+            res.clearCookie("token", {
+                maxAge: 0,
+                secure: process.env.NODE_ENV === "production" ? true : false,
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+            }).send({ success: true });
+
+        })
+
+
+     
+      
 
         //foodrequest related api
         app.post('/requestfood', async (req, res) => {
@@ -177,13 +195,7 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
-        // app.get('/food/:date', async (req, res) => {
-        //     const date = req.params.date;
-        //     const query = { date: date}
-        //     const cursor = await foodCollection.find(query);
-        //     const result = await cursor.toArray();
-        //     res.send(result);
-        // })
+   
 
         app.get('/onefood/:id', async (req, res) => {
             const id = req.params.id;
@@ -208,9 +220,7 @@ async function run() {
                     date: updatedFood.date,
                     additionalnotes: updatedFood.additionalnotes,
                     foodstatus: updatedFood.foodstatus,
-                    // email:updatedFood.email,
-                    // donatorimage: updatedFood.donatorimage,
-                    // donatorname: updatedFood.donatorname
+                    
 
                 }
             }
@@ -233,8 +243,11 @@ async function run() {
 
 
         app.get('/somefood', logger,verifyToken, async (req, res) => {
-            // console.log(req.query.email);
+            console.log(req.query.email);
             // console.log('tok tok',req.cookies.token)
+            if(req.user.email !== req.query.email){
+                return res.status(403).send({message : 'forbidden access'})
+            }
             let query = {};
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -275,8 +288,8 @@ async function run() {
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
