@@ -136,7 +136,7 @@ async function run() {
 
         //some
 
-        app.get('/foodrequest', async (req, res) => {
+        app.get('/foodrequest', logger, verifyToken, async (req, res) => {
             console.log(req.query.email);
             // console.log('tok tok', req.cookies.token)
             let query = {};
